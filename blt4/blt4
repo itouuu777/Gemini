@@ -4,24 +4,25 @@ SerialBT SerialBT;
 
 void setup() {
   Serial.begin(115200);
-  // 接続するサーバーのデバイス名を設定
-  if (!SerialBT.connect("PicoW_Server")) {
-    Serial.println("Failed to connect to PicoW_Server");
-    while (1);  // 接続に失敗した場合は停止
-  }
-  Serial.println("Connected to PicoW_Server");
+  pinMode(32, OUTPUT);
+  digitalWrite(32, LOW);
+  Serial.println("Waiting for a connection...");
 }
 
 void loop() {
-  // データを送信
-  SerialBT.println("s");  // 例として's'を送信
-  delay(1000);  // 1秒待機
-  SerialBT.println("g");  // 例として'g'を送信
-  delay(1000);  // 1秒待機
-
-  // データを受信して表示
   if (SerialBT.available()) {
-    String incoming = SerialBT.readString();
-    Serial.println(incoming);
+    byte inBuf[1];
+    SerialBT.readBytes(inBuf, 1);
+    Serial.print((char)inBuf[0]);
+    Serial.println("");
+
+    if (inBuf[0] == 's') {
+      SerialBT.println("ECHO BACK >> LED ON");
+      digitalWrite(32, HIGH);
+    }
+    if (inBuf[0] == 'g') {
+      SerialBT.println("ECHO BACK >> LED OFF");
+      digitalWrite(32, LOW);
+    }
   }
 }
