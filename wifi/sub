@@ -1,0 +1,46 @@
+#include <WiFi.h>
+
+const char *ssid = "PicoW_AP";       // アクセスポイントのSSID
+const char *password = "12345678";   // パスワード（8文字以上）
+
+WiFiServer server(80);  // ポート80でサーバーを立ち上げる
+
+void setup() {
+  Serial.begin(115200);
+  
+  // アクセスポイントを設定
+  WiFi.softAP(ssid, password);
+
+  Serial.println("Access Point started");
+  Serial.print("IP Address: ");
+  Serial.println(WiFi.softAPIP());
+
+  server.begin();  // サーバーを開始
+}
+
+void loop() {
+  WiFiClient client = server.available();  // クライアントからの接続を待つ
+
+  if (client) {
+    Serial.println("Client connected");
+    
+    while (client.connected()) {
+      if (client.available()) {
+        String request = client.readStringUntil('\r');  // クライアントからのデータを読み込む
+        Serial.println(request);
+        client.flush();  // リクエストをクリアする
+
+        // クライアントに返信
+        client.println("HTTP/1.1 200 OK");
+        client.println("Content-type:text/html");
+        client.println();
+        client.println("<h1>Hello from PicoW Server</h1>");
+        client.println();
+        break;
+      }
+    }
+
+    client.stop();  // クライアントを終了
+    Serial.println("Client disconnected");
+  }
+}
